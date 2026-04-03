@@ -124,12 +124,26 @@ p {
   justify-content: center;
 }
 
+.mini-link {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.25rem 0.4rem;
+  border-radius: 0.45rem;
+}
+
 .theme-toggle:hover {
   background: var(--bg-soft);
 }
 
 .nav-link:hover {
   background: var(--bg-soft);
+}
+
+.mini-link:hover {
+  color: var(--text);
+  background: color-mix(in srgb, var(--bg-soft) 80%, transparent);
 }
 
 .oidc-pill {
@@ -318,9 +332,18 @@ button:focus-visible {
   color: #f3faf7;
 }
 
+[data-theme="dark"] .mini-link {
+  color: #cdd9d4;
+}
+
 [data-theme="dark"] .secondary:hover,
 [data-theme="dark"] .theme-toggle:hover,
 [data-theme="dark"] .nav-link:hover {
+  background: #32443c;
+}
+
+[data-theme="dark"] .mini-link:hover {
+  color: #f3faf7;
   background: #32443c;
 }
 

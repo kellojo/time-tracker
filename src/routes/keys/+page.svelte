@@ -179,7 +179,16 @@
       <h1>API keys</h1>
     </div>
     <div class="topbar-actions">
+      <a
+        class="mini-link"
+        href="https://github.com/Kellojo/time-tracker"
+        target="_blank"
+        rel="noreferrer"
+      >
+        Open on GitHub
+      </a>
       <a class="nav-link" href="/">Dashboard</a>
+
       <button
         class="theme-toggle"
         onclick={toggleTheme}

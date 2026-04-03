@@ -351,7 +351,16 @@
       <h1>Simple, focused work hour tracking</h1>
     </div>
     <div class="topbar-actions">
+      <a
+        class="mini-link"
+        href="https://github.com/Kellojo/time-tracker"
+        target="_blank"
+        rel="noreferrer"
+      >
+        Open on GitHub
+      </a>
       <a class="nav-link" href="/keys">API Keys</a>
+
       <button
         class="theme-toggle"
         onclick={toggleTheme}

@@ -3,7 +3,7 @@
   src: url("/fonts/VarelaRound-Regular.ttf") format("truetype");
   font-style: normal;
   font-weight: 400;
-  font-display: optional;
+  font-display: block;
 }
 
 :root {
@@ -40,8 +40,12 @@ body {
   min-height: 100%;
 }
 
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
-  font-family: "VarelaRound", "Trebuchet MS", "Segoe UI", sans-serif;
+  font-family: "VarelaRound", "Trebuchet MS", "Segoe UI", "Verdana", sans-serif;
   color: var(--text);
   background:
     radial-gradient(circle at 90% 10%, #d8efe9 0%, transparent 35%),
@@ -84,6 +88,7 @@ p {
   display: flex;
   align-items: center;
   gap: 0.55rem;
+  min-height: 38px;
 }
 
 .topbar h1 {
@@ -100,6 +105,8 @@ p {
   font-size: 0.85rem;
   font-weight: 700;
   cursor: pointer;
+  min-width: 114px;
+  justify-content: center;
 }
 
 .nav-link {
@@ -113,6 +120,8 @@ p {
   text-decoration: none;
   display: inline-flex;
   align-items: center;
+  min-width: 88px;
+  justify-content: center;
 }
 
 .theme-toggle:hover {
@@ -210,6 +219,7 @@ p {
   font-size: clamp(2rem, 6vw, 3.6rem);
   letter-spacing: -0.03em;
   margin: 0.3rem 0;
+  font-variant-numeric: tabular-nums;
 }
 
 .timer-subtext {
@@ -322,6 +332,7 @@ button:focus-visible {
 
 .summary h2 {
   font-size: 2rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .summary-list {
@@ -469,6 +480,7 @@ button:focus-visible {
   padding-top: 0.85rem;
   display: grid;
   gap: 0.5rem;
+  min-height: 114px;
 }
 
 .month-editor-row {
@@ -660,6 +672,7 @@ button:focus-visible {
 .api-keys-panel {
   display: grid;
   gap: 0.8rem;
+  min-height: 520px;
 }
 
 .api-keys-layout {
@@ -746,6 +759,7 @@ button:focus-visible {
 .key-list {
   display: grid;
   gap: 0.55rem;
+  min-height: 44px;
 }
 
 .key-item {

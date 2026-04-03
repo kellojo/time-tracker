@@ -10,7 +10,11 @@
     lastUsedAt: string | null;
   };
 
-  let theme = $state<"light" | "dark">("light");
+  let theme = $state<"light" | "dark">(
+    browser && document.documentElement.getAttribute("data-theme") === "dark"
+      ? "dark"
+      : "light",
+  );
   let apiKeys = $state<ApiKeyItem[]>([]);
   let keysBusy = $state(false);
   let keyName = $state("");
@@ -289,7 +293,9 @@
           <p class="muted">Scope: hours:read</p>
         </article>
         <article class="endpoint-item">
-          <p><span class="method-tag method-get">GET</span> /api/hours/&#123;date&#125;</p>
+          <p>
+            <span class="method-tag method-get">GET</span> /api/hours/&#123;date&#125;
+          </p>
           <p class="muted">Scope: hours:read (date format: YYYY-MM-DD)</p>
         </article>
       </div>

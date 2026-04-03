@@ -1,9 +1,6 @@
 services:
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: time-tracker:latest
+    image: ghcr.io/kellojo/time-tracker:latest
     container_name: time-tracker
     restart: unless-stopped
     ports:

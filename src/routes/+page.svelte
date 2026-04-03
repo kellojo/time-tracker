@@ -64,7 +64,11 @@
   let activeRunSeconds = $state(0);
   let timerActionPending = $state(false);
   let apiMessage = $state("");
-  let theme = $state<"light" | "dark">("light");
+  let theme = $state<"light" | "dark">(
+    browser && document.documentElement.getAttribute("data-theme") === "dark"
+      ? "dark"
+      : "light",
+  );
 
   const formatMinutes = (minutes: number) => {
     const safeMinutes = Math.max(0, Math.round(minutes));

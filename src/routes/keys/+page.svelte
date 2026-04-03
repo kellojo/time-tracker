@@ -168,7 +168,7 @@
   <title>API Keys | Time Tracker</title>
   <meta
     name="description"
-    content="Create and revoke personal API keys for timer automation and reading today's hours."
+    content="Create and revoke personal API keys for timer automation and reading work times."
   />
 </svelte:head>
 
@@ -307,6 +307,10 @@
           </p>
           <p class="muted">Scope: hours:read (date format: YYYY-MM-DD)</p>
         </article>
+        <article class="endpoint-item">
+          <p><span class="method-tag method-get">GET</span> /api/hours/week</p>
+          <p class="muted">Scope: hours:read (current week Monday-Sunday)</p>
+        </article>
       </div>
 
       <p class="api-keys-label">Authorization header</p>
@@ -321,6 +325,8 @@
         class="api-snippet">curl "$BASE_URL/api/hours/today" -H "Authorization: Bearer $API_KEY"</pre>
       <pre
         class="api-snippet">curl "$BASE_URL/api/hours/2026-04-03" -H "Authorization: Bearer $API_KEY"</pre>
+      <pre
+        class="api-snippet">curl "$BASE_URL/api/hours/week" -H "Authorization: Bearer $API_KEY"</pre>
     </article>
   </section>
 </main>

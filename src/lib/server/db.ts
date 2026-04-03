@@ -136,6 +136,28 @@ export function getDayMinutes(userId: string, day: string) {
   return row?.total_minutes ?? 0;
 }
 
+export function getDayTotalsBetween(
+  userId: string,
+  startDay: string,
+  endDay: string,
+) {
+  const db = getDb();
+  const rows = db
+    .prepare(
+      `
+        SELECT day, total_minutes
+        FROM day_totals
+        WHERE user_id = ? AND day >= ? AND day <= ?
+      `,
+    )
+    .all(userId, startDay, endDay) as Array<{
+    day: string;
+    total_minutes: number;
+  }>;
+
+  return Object.fromEntries(rows.map((row) => [row.day, row.total_minutes]));
+}
+
 export function createApiKey(params: {
   id: string;
   userId: string;

@@ -92,6 +92,7 @@ Endpoints:
 - `POST /api/timer/stop` (scope: `timer:stop`)
 - `GET /api/hours/today` (scope: `hours:read`)
 - `GET /api/hours/:date` (scope: `hours:read`, date format `YYYY-MM-DD`)
+- `GET /api/hours/week` (scope: `hours:read`, current week Monday-Sunday)
 
 API keys can be managed in the app UI at `/keys`.
 

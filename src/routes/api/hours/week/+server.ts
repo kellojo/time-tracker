@@ -9,6 +9,13 @@ function toIsoLocalDate(date: Date) {
   return `${y}-${m}-${d}`;
 }
 
+function formatMinutesHuman(totalMinutes: number) {
+  const safeMinutes = Math.max(0, Math.floor(totalMinutes));
+  const hours = Math.floor(safeMinutes / 60);
+  const minutes = safeMinutes % 60;
+  return `${hours}h ${minutes}m`;
+}
+
 function getCurrentWeekDays() {
   const today = new Date();
   const start = new Date(today);
@@ -61,6 +68,12 @@ export const GET: RequestHandler = async (event) => {
     (sum, day) => sum + day.totalMinutesEffective,
     0,
   );
+  const weekTotalMinutesStoredHuman = formatMinutesHuman(
+    weekTotalMinutesStored,
+  );
+  const weekTotalMinutesEffectiveHuman = formatMinutesHuman(
+    weekTotalMinutesEffective,
+  );
 
   return json({
     data: {
@@ -68,7 +81,9 @@ export const GET: RequestHandler = async (event) => {
       weekEnd,
       days: weekDays,
       weekTotalMinutesStored,
+      weekTotalMinutesStoredHuman,
       weekTotalMinutesEffective,
+      weekTotalMinutesEffectiveHuman,
     },
     error: null,
   });

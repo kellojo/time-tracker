@@ -288,6 +288,10 @@
           <p><span class="method-tag method-get">GET</span> /api/hours/today</p>
           <p class="muted">Scope: hours:read</p>
         </article>
+        <article class="endpoint-item">
+          <p><span class="method-tag method-get">GET</span> /api/hours/&#123;date&#125;</p>
+          <p class="muted">Scope: hours:read (date format: YYYY-MM-DD)</p>
+        </article>
       </div>
 
       <p class="api-keys-label">Authorization header</p>
@@ -300,6 +304,8 @@
         class="api-snippet">curl -X POST "$BASE_URL/api/timer/stop" -H "Authorization: Bearer $API_KEY" -H "content-type: application/json" -d '&#123;"day":"2026-04-03"&#125;'</pre>
       <pre
         class="api-snippet">curl "$BASE_URL/api/hours/today" -H "Authorization: Bearer $API_KEY"</pre>
+      <pre
+        class="api-snippet">curl "$BASE_URL/api/hours/2026-04-03" -H "Authorization: Bearer $API_KEY"</pre>
     </article>
   </section>
 </main>

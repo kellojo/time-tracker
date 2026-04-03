@@ -48,7 +48,8 @@ export const GET: RequestHandler = async (event) => {
       day,
       totalMinutesStored,
       runningElapsedSeconds: isToday ? timer.elapsedSeconds : 0,
-      totalMinutesEffective: totalMinutesStored + (isToday ? runningMinutes : 0),
+      totalMinutesEffective:
+        totalMinutesStored + (isToday ? runningMinutes : 0),
     };
   });
 

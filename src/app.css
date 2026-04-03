@@ -67,6 +67,11 @@ p {
   padding: 2.5rem 1rem 3rem;
 }
 
+.api-keys-page {
+  min-height: 100dvh;
+  max-width: 900px;
+}
+
 .topbar {
   display: flex;
   justify-content: space-between;
@@ -97,7 +102,24 @@ p {
   cursor: pointer;
 }
 
+.nav-link {
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--text);
+  padding: 0.5rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
 .theme-toggle:hover {
+  background: var(--bg-soft);
+}
+
+.nav-link:hover {
   background: var(--bg-soft);
 }
 
@@ -279,14 +301,16 @@ button:focus-visible {
 }
 
 [data-theme="dark"] .secondary,
-[data-theme="dark"] .theme-toggle {
+[data-theme="dark"] .theme-toggle,
+[data-theme="dark"] .nav-link {
   background: #25332d;
   border-color: #50655c;
   color: #f3faf7;
 }
 
 [data-theme="dark"] .secondary:hover,
-[data-theme="dark"] .theme-toggle:hover {
+[data-theme="dark"] .theme-toggle:hover,
+[data-theme="dark"] .nav-link:hover {
   background: #32443c;
 }
 
@@ -633,8 +657,178 @@ button:focus-visible {
   font-weight: 700;
 }
 
+.api-keys-panel {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.api-keys-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+  align-items: start;
+}
+
+.compact-panel {
+  padding: 0.85rem;
+  gap: 0.6rem;
+}
+
+.compact-head {
+  margin-bottom: 0.45rem;
+}
+
+.api-keys-create {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 0.8rem;
+  background: var(--bg-soft);
+}
+
+.compact-create {
+  padding: 0.65rem;
+}
+
+.api-keys-create input,
+.key-secret-box textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--text);
+  border-radius: 0.7rem;
+  padding: 0.65rem 0.75rem;
+  font: inherit;
+}
+
+.api-keys-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.scope-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.scope-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid var(--line);
+  background: var(--card);
+  border-radius: 999px;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.8rem;
+}
+
+.scope-pill input {
+  width: 14px;
+  height: 14px;
+}
+
+.key-secret-box {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.8rem;
+  border-radius: 0.8rem;
+  border: 1px dashed color-mix(in srgb, var(--accent) 35%, var(--line));
+}
+
+.key-secret-box textarea {
+  min-height: 84px;
+  resize: vertical;
+}
+
+.key-list {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.key-item {
+  border: 1px solid var(--line);
+  border-radius: 0.8rem;
+  padding: 0.7rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.compact-item {
+  padding: 0.6rem;
+}
+
+.key-delete-btn {
+  grid-column: auto;
+  border-radius: 0.65rem;
+  padding: 0.4rem 0.6rem;
+}
+
+.api-docs-panel {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.endpoint-list {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.endpoint-item {
+  border: 1px solid var(--line);
+  border-radius: 0.7rem;
+  padding: 0.55rem 0.65rem;
+  background: var(--bg-soft);
+}
+
+.method-tag {
+  display: inline-block;
+  min-width: 44px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.16rem 0.4rem;
+  margin-right: 0.35rem;
+  text-align: center;
+}
+
+.method-get {
+  background: color-mix(in srgb, var(--accent-2) 22%, transparent);
+  color: color-mix(in srgb, var(--accent-2) 80%, black);
+}
+
+.api-snippet {
+  margin: 0;
+  border: 1px solid var(--line);
+  border-radius: 0.7rem;
+  background: var(--bg-soft);
+  padding: 0.5rem 0.6rem;
+  font-size: 0.76rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.key-revoked {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.3rem 0.65rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
 @media (max-width: 900px) {
   .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .api-keys-layout {
     grid-template-columns: 1fr;
   }
 }
@@ -704,6 +898,17 @@ button:focus-visible {
 
   .panel {
     padding: 0.9rem;
+  }
+
+  .key-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .key-item .ghost,
+  .key-secret-box .secondary,
+  .api-keys-create .primary {
+    min-height: 40px;
   }
 
   .timer-value {

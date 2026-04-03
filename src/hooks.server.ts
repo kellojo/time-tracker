@@ -23,6 +23,11 @@ const guardHandle: import("@sveltejs/kit").Handle = async ({
   }
 
   if (path.startsWith("/api")) {
+    const authHeader = event.request.headers.get("authorization") || "";
+    if (authHeader.toLowerCase().startsWith("bearer ")) {
+      return resolve(event);
+    }
+
     return new Response(
       JSON.stringify({
         data: null,

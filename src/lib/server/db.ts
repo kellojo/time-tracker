@@ -38,7 +38,20 @@ function createDb() {
       FOREIGN KEY (user_id) REFERENCES users(id)
     );
 
+    CREATE TABLE IF NOT EXISTS api_keys (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      name TEXT NOT NULL,
+      key_hash TEXT NOT NULL UNIQUE,
+      scopes TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      last_used_at TEXT,
+      revoked_at TEXT,
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    );
+
     CREATE INDEX IF NOT EXISTS idx_day_totals_user_day ON day_totals(user_id, day);
+    CREATE INDEX IF NOT EXISTS idx_api_keys_user_id ON api_keys(user_id);
   `);
 
   return db;
@@ -110,6 +123,118 @@ export function setDayMinutes(userId: string, day: string, minutes: number) {
   ).run(userId, day, safeMinutes, new Date().toISOString());
 
   return safeMinutes;
+}
+
+export function getDayMinutes(userId: string, day: string) {
+  const db = getDb();
+  const row = db
+    .prepare(
+      "SELECT total_minutes FROM day_totals WHERE user_id = ? AND day = ?",
+    )
+    .get(userId, day) as { total_minutes: number } | undefined;
+
+  return row?.total_minutes ?? 0;
+}
+
+export function createApiKey(params: {
+  id: string;
+  userId: string;
+  name: string;
+  keyHash: string;
+  scopes: string[];
+}) {
+  const db = getDb();
+  const now = new Date().toISOString();
+
+  db.prepare(
+    `
+      INSERT INTO api_keys (id, user_id, name, key_hash, scopes, created_at)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `,
+  ).run(
+    params.id,
+    params.userId,
+    params.name,
+    params.keyHash,
+    JSON.stringify(params.scopes),
+    now,
+  );
+}
+
+export function listApiKeys(userId: string) {
+  const db = getDb();
+  const rows = db
+    .prepare(
+      `
+        SELECT id, name, scopes, created_at, last_used_at
+        FROM api_keys
+        WHERE user_id = ? AND revoked_at IS NULL
+        ORDER BY created_at DESC
+      `,
+    )
+    .all(userId) as Array<{
+    id: string;
+    name: string;
+    scopes: string;
+    created_at: string;
+    last_used_at: string | null;
+  }>;
+
+  return rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    scopes: JSON.parse(row.scopes) as string[],
+    createdAt: row.created_at,
+    lastUsedAt: row.last_used_at,
+  }));
+}
+
+export function getApiKeyByHash(keyHash: string) {
+  const db = getDb();
+  const row = db
+    .prepare(
+      `
+        SELECT id, user_id, scopes, revoked_at
+        FROM api_keys
+        WHERE key_hash = ?
+      `,
+    )
+    .get(keyHash) as
+    | {
+        id: string;
+        user_id: string;
+        scopes: string;
+        revoked_at: string | null;
+      }
+    | undefined;
+
+  if (!row) {
+    return null;
+  }
+
+  return {
+    id: row.id,
+    userId: row.user_id,
+    scopes: JSON.parse(row.scopes) as string[],
+    revokedAt: row.revoked_at,
+  };
+}
+
+export function touchApiKeyLastUsed(id: string) {
+  const db = getDb();
+  db.prepare("UPDATE api_keys SET last_used_at = ? WHERE id = ?").run(
+    new Date().toISOString(),
+    id,
+  );
+}
+
+export function deleteApiKey(userId: string, id: string) {
+  const db = getDb();
+  const result = db
+    .prepare("DELETE FROM api_keys WHERE id = ? AND user_id = ?")
+    .run(id, userId);
+
+  return result.changes > 0;
 }
 
 export function startTimer(userId: string) {

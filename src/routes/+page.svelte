@@ -347,6 +347,7 @@
       <h1>Simple, focused work hour tracking</h1>
     </div>
     <div class="topbar-actions">
+      <a class="nav-link" href="/keys">API Keys</a>
       <button
         class="theme-toggle"
         onclick={toggleTheme}

@@ -1,6 +1,6 @@
 import { json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
-import { requireUserId } from "$lib/server/auth";
+import { requireUserIdWithApiKey } from "$lib/server/auth";
 import { stopTimer } from "$lib/server/db";
 
 const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -14,7 +14,7 @@ function todayIso() {
 }
 
 export const POST: RequestHandler = async (event) => {
-  const userId = await requireUserId(event);
+  const userId = await requireUserIdWithApiKey(event, "timer:stop");
   const body = await event.request.json().catch(() => ({}));
 
   const day =

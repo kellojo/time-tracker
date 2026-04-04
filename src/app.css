@@ -927,6 +927,7 @@ button:focus-visible {
 
   .day-week {
     font-size: 0.72rem;
+    display: none;
   }
 
   .month-cell small {

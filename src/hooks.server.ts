@@ -1,9 +1,23 @@
-import { auth, authReady } from "./auth";
+import { env } from "$env/dynamic/private";
+import { auth, authReady, devAuthBypassEnabled } from "./auth";
 
 const guardHandle: import("@sveltejs/kit").Handle = async ({
   event,
   resolve,
 }) => {
+  if (devAuthBypassEnabled) {
+    event.locals.session = {
+      user: {
+        id: env.DEV_AUTH_USER_ID?.trim() || "dev-user",
+        email: env.DEV_AUTH_USER_EMAIL?.trim() || "dev@example.local",
+        name: env.DEV_AUTH_USER_NAME?.trim() || "Local Developer",
+        image: env.DEV_AUTH_USER_IMAGE?.trim() || null,
+      },
+    };
+
+    return resolve(event);
+  }
+
   const path = event.url.pathname;
 
   if (path.startsWith("/auth") || path.startsWith("/api/auth")) {

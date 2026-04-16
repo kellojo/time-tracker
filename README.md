@@ -103,4 +103,19 @@ npm ci
 npm run dev
 ```
 
-You still need valid OIDC environment variables for authentication.
+By default, local development still expects OIDC variables.
+
+If you want to run without an OIDC provider in development, create a `.env`
+from `.env.example` and enable:
+
+- `DEV_AUTH_BYPASS=true`
+
+Optional identity fields for the local dev user:
+
+- `DEV_AUTH_USER_ID`
+- `DEV_AUTH_USER_EMAIL`
+- `DEV_AUTH_USER_NAME`
+- `DEV_AUTH_USER_IMAGE`
+
+When `DEV_AUTH_BYPASS=true`, the app injects a local session in development and
+skips the OIDC login flow.

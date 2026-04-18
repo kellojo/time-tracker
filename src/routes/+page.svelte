@@ -53,9 +53,7 @@
       };
     });
 
-  let monthPreviewDays = $state<MonthPreviewDay[]>(
-    buildMonthPreviewDays(viewedYear, viewedMonth, daysInViewedMonth),
-  );
+  let monthPreviewDays = $state<MonthPreviewDay[]>([]);
 
   let selectedDay = $state(now.getDate());
   let editValue = $state("");
@@ -81,8 +79,30 @@
     monthPreviewDays.find((entry) => entry.day === selectedDay),
   );
   const selectedDayMinutes = $derived(selectedDayEntry?.minutes ?? 0);
+  const isSelectedDayToday = $derived(
+    viewedYear === now.getFullYear() &&
+      viewedMonth === now.getMonth() &&
+      selectedDay === now.getDate(),
+  );
+  const selectedDayLiveMinutes = $derived(
+    selectedDayMinutes +
+      (isTracking && isSelectedDayToday ? activeRunSeconds / 60 : 0),
+  );
+  const dailyTargetMinutes = 8 * 60;
   const selectedDayDisplayMinutes = $derived(
-    selectedDayMinutes + (isTracking ? Math.floor(activeRunSeconds / 60) : 0),
+    Math.floor(selectedDayLiveMinutes),
+  );
+  const selectedDayProgressPercentRaw = $derived(
+    Math.max(0, (selectedDayLiveMinutes / dailyTargetMinutes) * 100),
+  );
+  const selectedDayProgressPercent = $derived(
+    Math.min(100, selectedDayProgressPercentRaw),
+  );
+  const selectedDayOvertimePercent = $derived(
+    Math.min(100, Math.max(0, selectedDayProgressPercentRaw - 100)),
+  );
+  const selectedDayOvertimeMinutes = $derived(
+    Math.max(0, Math.floor(selectedDayLiveMinutes - dailyTargetMinutes)),
   );
   const selectedDayLabel = $derived(
     new Date(viewedYear, viewedMonth, selectedDay).toLocaleDateString(
@@ -189,6 +209,10 @@
     isTracking = Boolean(payload.data.isRunning);
     activeRunSeconds = Number(payload.data.elapsedSeconds ?? 0);
   }
+
+  const refreshFromBackend = async () => {
+    await Promise.all([loadMonthData(), loadTimerStatus()]);
+  };
 
   const applyTheme = (value: "light" | "dark") => {
     theme = value;
@@ -319,8 +343,20 @@
   });
 
   onMount(() => {
-    void loadMonthData();
-    void loadTimerStatus();
+    void refreshFromBackend();
+
+    const handleVisibilityRefresh = () => {
+      if (document.visibilityState !== "visible") return;
+      void refreshFromBackend();
+    };
+
+    const handleWindowRefresh = () => {
+      void refreshFromBackend();
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityRefresh);
+    window.addEventListener("focus", handleWindowRefresh);
+    window.addEventListener("pageshow", handleWindowRefresh);
 
     const stored = localStorage.getItem("theme");
     const prefersDark = window.matchMedia(
@@ -333,6 +369,12 @@
           ? "dark"
           : "light";
     applyTheme(initialTheme);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityRefresh);
+      window.removeEventListener("focus", handleWindowRefresh);
+      window.removeEventListener("pageshow", handleWindowRefresh);
+    };
   });
 </script>
 
@@ -386,16 +428,38 @@
         <p class="muted">Total tracked for {selectedDayLabel}</p>
         <div class="summary-list">
           <div>
-            <span>Tracked so far</span>
-            <strong>{formatMinutes(selectedDayDisplayMinutes)}</strong>
-          </div>
-          <div>
-            <span>Remaining to 8h</span>
-            <strong>{formatMinutes(remainingToTargetMinutes)}</strong>
-          </div>
-          <div>
-            <span>Tracking state</span>
-            <strong>{isTracking ? "Running" : "Stopped"}</strong>
+            <div class="summary-indicators">
+              <div
+                class="summary-progress"
+                role="progressbar"
+                aria-label="Tracked progress for selected day"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                aria-valuenow={Math.round(selectedDayProgressPercent)}
+                aria-valuetext={`${formatMinutes(selectedDayDisplayMinutes)} tracked${selectedDayOvertimeMinutes > 0 ? `, ${formatMinutes(selectedDayOvertimeMinutes)} overtime` : ""}`}
+              >
+                <span
+                  class="summary-progress-fill"
+                  style={`width: ${selectedDayProgressPercent}%`}
+                ></span>
+                <span class="summary-progress-label"
+                  >Tracked {formatMinutes(selectedDayDisplayMinutes)} / {formatMinutes(
+                    dailyTargetMinutes,
+                  )}</span
+                >
+              </div>
+              {#if selectedDayOvertimeMinutes > 0}
+                <div class="summary-overtime" role="status">
+                  <span
+                    class="summary-overtime-fill"
+                    style={`width: ${Math.max(18, selectedDayOvertimePercent)}%`}
+                  ></span>
+                  <span class="summary-progress-label"
+                    >Overtime +{formatMinutes(selectedDayOvertimeMinutes)}</span
+                  >
+                </div>
+              {/if}
+            </div>
           </div>
         </div>
       </article>
@@ -480,3 +544,105 @@
     </article>
   </section>
 </main>
+
+<style>
+  .summary-indicators {
+    display: grid;
+    gap: 0.55rem;
+    width: 100%;
+  }
+
+  .summary-progress,
+  .summary-overtime {
+    position: relative;
+    display: block;
+    height: 1.15rem;
+    min-height: 1.15rem;
+    width: 100%;
+    padding: 0;
+    border-radius: 999px;
+    background: #dde4eb;
+    background: color-mix(in srgb, var(--line) 70%, var(--bg-soft));
+    border: 1px solid #c4d0dc;
+    border: 1px solid color-mix(in srgb, var(--line) 85%, transparent);
+    overflow: hidden;
+  }
+
+  .summary-overtime {
+    background: #f3debf;
+    background: color-mix(in srgb, #f2c68e 38%, var(--bg-soft));
+  }
+
+  .summary-progress-fill,
+  .summary-overtime-fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    display: block;
+    width: 0;
+    height: auto;
+    border-radius: 999px;
+    min-width: 0;
+    transition: width 260ms ease;
+    z-index: 1;
+  }
+
+  .summary-progress-fill {
+    background: var(--accent, #0f8f78);
+    background-image: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--accent, #0f8f78) 80%, white),
+      var(--accent, #0f8f78)
+    );
+    animation: summary-progress-shimmer 1.4s linear infinite;
+    background-size: 160% 100%;
+  }
+
+  .summary-overtime-fill {
+    background: linear-gradient(90deg, #f7a43a, #eb7f1a);
+    animation: summary-progress-shimmer 1.4s linear infinite;
+    background-size: 160% 100%;
+  }
+
+  .summary-progress-label {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 0 0.55rem;
+    margin-top: 1px;
+    text-align: left;
+    color: #143229;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    line-height: 1;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .summary-overtime .summary-progress-label {
+    color: #4a2200;
+  }
+
+  :global([data-theme="dark"]) .summary-progress-label {
+    color: #e8f5ef;
+  }
+
+  :global([data-theme="dark"]) .summary-overtime .summary-progress-label {
+    color: #fff2e3;
+  }
+
+  @keyframes summary-progress-shimmer {
+    0% {
+      background-position: 100% 0;
+    }
+
+    100% {
+      background-position: 0 0;
+    }
+  }
+</style>

@@ -72,6 +72,9 @@
     const safeMinutes = Math.max(0, Math.round(minutes));
     const hoursPart = Math.floor(safeMinutes / 60);
     const minutesPart = safeMinutes % 60;
+    if (minutesPart === 0) {
+      return `${hoursPart}h`;
+    }
     return `${hoursPart}h ${minutesPart}m`;
   };
 

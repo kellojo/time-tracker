@@ -466,6 +466,10 @@ button:focus-visible {
   filter: none;
 }
 
+.month-cell.outside-month {
+  opacity: 0.78;
+}
+
 .month-cell strong {
   font-size: 0.98rem;
   font-weight: 700;

@@ -4,8 +4,12 @@
   import TimerCard from "$lib/ui/TimerCard.svelte";
 
   type MonthPreviewDay = {
+    dateIso: string;
+    year: number;
+    month: number;
     day: number;
     minutes: number;
+    inCurrentMonth: boolean;
     isToday: boolean;
     isWeekend: boolean;
     weekdayShort: string;
@@ -17,49 +21,80 @@
   let viewedYear = $state(now.getFullYear());
   let viewedMonth = $state(now.getMonth());
 
+  const toDateIso = (year: number, month: number, day: number) =>
+    `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+
+  const toMonthKey = (year: number, month: number) =>
+    `${year}-${String(month + 1).padStart(2, "0")}`;
+
   const currentMonthLabel = $derived(
     new Date(viewedYear, viewedMonth, 1).toLocaleDateString(undefined, {
       month: "long",
       year: "numeric",
     }),
   );
-  const firstDayMondayIndex = $derived(
-    (new Date(viewedYear, viewedMonth, 1).getDay() + 6) % 7,
-  );
   const daysInViewedMonth = $derived(
     new Date(viewedYear, viewedMonth + 1, 0).getDate(),
   );
-  const currentMonthKey = $derived(
-    `${viewedYear}-${String(viewedMonth + 1).padStart(2, "0")}`,
-  );
+  const currentMonthKey = $derived(toMonthKey(viewedYear, viewedMonth));
 
-  const buildMonthPreviewDays = (
+  const buildDayCell = (
     year: number,
     month: number,
-    dayCount: number,
-  ) =>
-    Array.from({ length: dayCount }, (_, i) => {
-      const day = i + 1;
-      const weekday = new Date(year, month, day).getDay();
-      const weekdayShort = weekdayHeaders[(weekday + 6) % 7];
-      return {
-        day,
-        minutes: 0,
-        isToday:
-          year === now.getFullYear() &&
-          month === now.getMonth() &&
-          day === now.getDate(),
-        isWeekend: weekday === 0 || weekday === 6,
-        weekdayShort,
-      };
-    });
+    day: number,
+    inCurrentMonth: boolean,
+  ): MonthPreviewDay => {
+    const weekday = new Date(year, month, day).getDay();
+    return {
+      dateIso: toDateIso(year, month, day),
+      year,
+      month,
+      day,
+      minutes: 0,
+      inCurrentMonth,
+      isToday:
+        year === now.getFullYear() &&
+        month === now.getMonth() &&
+        day === now.getDate(),
+      isWeekend: weekday === 0 || weekday === 6,
+      weekdayShort: weekdayHeaders[(weekday + 6) % 7],
+    };
+  };
+
+  const buildMonthPreviewDays = (year: number, month: number) => {
+    const dayCount = new Date(year, month + 1, 0).getDate();
+    const firstDayMondayIndex = (new Date(year, month, 1).getDay() + 6) % 7;
+
+    const previousMonthDate = new Date(year, month, 0);
+    const previousYear = previousMonthDate.getFullYear();
+    const previousMonth = previousMonthDate.getMonth();
+    const previousMonthDays = previousMonthDate.getDate();
+
+    const days: MonthPreviewDay[] = [];
+
+    for (let i = firstDayMondayIndex; i > 0; i -= 1) {
+      const day = previousMonthDays - i + 1;
+      days.push(buildDayCell(previousYear, previousMonth, day, false));
+    }
+
+    for (let day = 1; day <= dayCount; day += 1) {
+      days.push(buildDayCell(year, month, day, true));
+    }
+
+    const trailingDays = (7 - (days.length % 7)) % 7;
+    const nextMonthDate = new Date(year, month + 1, 1);
+    const nextYear = nextMonthDate.getFullYear();
+    const nextMonth = nextMonthDate.getMonth();
+
+    for (let day = 1; day <= trailingDays; day += 1) {
+      days.push(buildDayCell(nextYear, nextMonth, day, false));
+    }
+
+    return days;
+  };
 
   let monthPreviewDays = $state<MonthPreviewDay[]>(
-    buildMonthPreviewDays(
-      now.getFullYear(),
-      now.getMonth(),
-      new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate(),
-    ),
+    buildMonthPreviewDays(now.getFullYear(), now.getMonth()),
   );
 
   let selectedDay = $state(now.getDate());
@@ -130,21 +165,18 @@
     return formatSignedMinutes(rounded);
   };
 
-  const toViewedDate = (dayNumber: number) =>
-    new Date(viewedYear, viewedMonth, dayNumber);
+  const toCellDate = (day: MonthPreviewDay) =>
+    new Date(day.year, day.month, day.day);
 
-  const isWeekEndDay = (dayNumber: number) =>
-    toViewedDate(dayNumber).getDay() === 0;
-
-  const calculateWeekExtraMinutes = (weekEndDayNumber: number) => {
-    const weekEnd = toViewedDate(weekEndDayNumber);
+  const calculateWeekExtraMinutes = (weekEndDay: MonthPreviewDay) => {
+    const weekEnd = toCellDate(weekEndDay);
     const weekStart = new Date(weekEnd);
     weekStart.setDate(weekEnd.getDate() - 6);
 
     let totalExtraMinutes = 0;
 
     for (const day of monthPreviewDays) {
-      const current = toViewedDate(day.day);
+      const current = toCellDate(day);
 
       if (current < weekStart || current > weekEnd) {
         continue;
@@ -167,11 +199,11 @@
 
   const weekEndExtraMinutes = $derived(
     (() => {
-      const summaries: Record<number, number> = {};
+      const summaries: Record<string, number> = {};
 
       for (const day of monthPreviewDays) {
-        if (isWeekEndDay(day.day)) {
-          summaries[day.day] = calculateWeekExtraMinutes(day.day);
+        if (toCellDate(day).getDay() === 0) {
+          summaries[day.dateIso] = calculateWeekExtraMinutes(day);
         }
       }
 
@@ -181,24 +213,10 @@
 
   const monthRows = $derived(
     (() => {
-      const leadingEmpty = Array.from(
-        { length: firstDayMondayIndex },
-        () => null,
-      );
-      const cells: Array<MonthPreviewDay | null> = [
-        ...leadingEmpty,
-        ...monthPreviewDays,
-      ];
-      const trailingEmpty = (7 - (cells.length % 7)) % 7;
+      const rows: Array<MonthPreviewDay[]> = [];
 
-      for (let i = 0; i < trailingEmpty; i += 1) {
-        cells.push(null);
-      }
-
-      const rows: Array<Array<MonthPreviewDay | null>> = [];
-
-      for (let i = 0; i < cells.length; i += 7) {
-        rows.push(cells.slice(i, i + 7));
+      for (let i = 0; i < monthPreviewDays.length; i += 7) {
+        rows.push(monthPreviewDays.slice(i, i + 7));
       }
 
       return rows;
@@ -206,7 +224,9 @@
   );
 
   const selectedDayEntry = $derived(
-    monthPreviewDays.find((entry) => entry.day === selectedDay),
+    monthPreviewDays.find(
+      (entry) => entry.inCurrentMonth && entry.day === selectedDay,
+    ),
   );
   const selectedDayMinutes = $derived(selectedDayEntry?.minutes ?? 0);
   const isSelectedDayToday = $derived(
@@ -283,6 +303,19 @@
     apiMessage = "";
   };
 
+  const selectCalendarCell = (day: MonthPreviewDay) => {
+    if (day.inCurrentMonth) {
+      setSelectedDay(day.day);
+      return;
+    }
+
+    viewedYear = day.year;
+    viewedMonth = day.month;
+    selectedDay = day.day;
+    inputError = "";
+    apiMessage = "";
+  };
+
   const goToPreviousMonth = () => {
     if (viewedMonth === 0) {
       viewedMonth = 11;
@@ -308,24 +341,58 @@
   };
 
   const selectedDateIso = (dayNumber: number) =>
-    `${currentMonthKey}-${String(dayNumber).padStart(2, "0")}`;
+    toDateIso(viewedYear, viewedMonth, dayNumber);
 
   async function loadMonthData() {
-    const res = await fetch(`/api/days?month=${currentMonthKey}`);
-    const payload = await res.json();
-    if (!res.ok || !payload?.data?.days) {
-      apiMessage = payload?.error?.message ?? "Could not load month data.";
-      return;
+    const previous = new Date(viewedYear, viewedMonth - 1, 1);
+    const next = new Date(viewedYear, viewedMonth + 1, 1);
+    const monthKeys = [
+      currentMonthKey,
+      toMonthKey(previous.getFullYear(), previous.getMonth()),
+      toMonthKey(next.getFullYear(), next.getMonth()),
+    ];
+
+    const results = await Promise.all(
+      monthKeys.map(async (monthKey) => {
+        const res = await fetch(`/api/days?month=${monthKey}`);
+        const payload = await res.json();
+
+        if (!res.ok || !payload?.data?.days) {
+          return {
+            ok: false,
+            error: payload?.error?.message ?? `Could not load ${monthKey}.`,
+            days: {} as Record<string, number>,
+          };
+        }
+
+        return {
+          ok: true,
+          error: "",
+          days: payload.data.days as Record<string, number>,
+        };
+      }),
+    );
+
+    const dayMap: Record<string, number> = {};
+    let firstError = "";
+
+    for (const result of results) {
+      Object.assign(dayMap, result.days);
+      if (!result.ok && !firstError) {
+        firstError = result.error;
+      }
     }
 
-    const dayMap = payload.data.days as Record<string, number>;
     monthPreviewDays = monthPreviewDays.map((entry) => {
-      const key = selectedDateIso(entry.day);
       return {
         ...entry,
-        minutes: Number(dayMap[key] ?? 0),
+        minutes: Number(dayMap[entry.dateIso] ?? 0),
       };
     });
+
+    if (firstError) {
+      apiMessage = firstError;
+    }
   }
 
   async function loadTimerStatus() {
@@ -457,11 +524,7 @@
   };
 
   $effect(() => {
-    monthPreviewDays = buildMonthPreviewDays(
-      viewedYear,
-      viewedMonth,
-      daysInViewedMonth,
-    );
+    monthPreviewDays = buildMonthPreviewDays(viewedYear, viewedMonth);
 
     selectedDay = Math.min(Math.max(1, selectedDay), daysInViewedMonth);
     inputError = "";
@@ -637,30 +700,26 @@
             <div class="month-week-row">
               <div class="month-week-days">
                 {#each week as day}
-                  {#if day}
-                    <button
-                      class={`month-cell ${intensityClass(day.minutes / 60)} ${day.isWeekend ? "weekend" : ""} ${day.isToday ? "active" : ""} ${selectedDay === day.day ? "selected" : ""}`}
-                      onclick={() => setSelectedDay(day.day)}
-                      aria-label={`Set tracked hours for ${day.weekdayShort} day ${day.day}`}
+                  <button
+                    class={`month-cell ${intensityClass(day.minutes / 60)} ${day.isWeekend ? "weekend" : ""} ${day.isToday ? "active" : ""} ${day.inCurrentMonth ? "" : "outside-month"} ${selectedDay === day.day && day.inCurrentMonth ? "selected" : ""}`}
+                    onclick={() => selectCalendarCell(day)}
+                    aria-label={`Set tracked hours for ${day.weekdayShort} day ${day.day}`}
+                  >
+                    <strong
+                      >{day.day}
+                      <span class="day-week">{day.weekdayShort}</span></strong
                     >
-                      <strong
-                        >{day.day}
-                        <span class="day-week">{day.weekdayShort}</span></strong
-                      >
-                      {#if day.minutes > 0}
-                        <small>{formatMinutes(day.minutes)}</small>
-                      {/if}
-                    </button>
-                  {:else}
-                    <div class="month-empty" aria-hidden="true"></div>
-                  {/if}
+                    {#if day.minutes > 0}
+                      <small>{formatMinutes(day.minutes)}</small>
+                    {/if}
+                  </button>
                 {/each}
               </div>
 
               {#if week}
                 {@const weekEndDay = week[6]}
                 {@const weekExtraMinutes = weekEndDay
-                  ? weekEndExtraMinutes[weekEndDay.day]
+                  ? weekEndExtraMinutes[weekEndDay.dateIso]
                   : undefined}
                 <div
                   class="month-week-summary"
@@ -751,6 +810,7 @@
       color-mix(in srgb, var(--accent, #0f8f78) 80%, white),
       var(--accent, #0f8f78)
     );
+    background: linear-gradient(90deg, #0f8f78, #0f8f78);
     animation: summary-progress-shimmer 1.4s linear infinite;
     background-size: 160% 100%;
   }

@@ -583,49 +583,58 @@
           </button>
         </div>
       </div>
-      <div class="month-weekdays" aria-hidden="true">
-        {#each previewHeaders as dayName}
-          <span>{dayName}</span>
-        {/each}
-      </div>
-      <div class="month-grid">
-        {#each monthRows as week}
-          {#each week as day}
-            {#if day}
-              <button
-                class={`month-cell ${intensityClass(day.minutes / 60)} ${day.isWeekend ? "weekend" : ""} ${day.isToday ? "active" : ""} ${selectedDay === day.day ? "selected" : ""}`}
-                onclick={() => setSelectedDay(day.day)}
-                aria-label={`Set tracked hours for ${day.weekdayShort} day ${day.day}`}
-              >
-                <strong
-                  >{day.day}
-                  <span class="day-week">{day.weekdayShort}</span></strong
-                >
-                {#if day.minutes > 0}
-                  <small>{formatMinutes(day.minutes)}</small>
-                {/if}
-              </button>
-            {:else}
-              <div class="month-empty" aria-hidden="true"></div>
-            {/if}
+      <div class="month-scroll">
+        <div class="month-weekdays" aria-hidden="true">
+          {#each previewHeaders as dayName}
+            <span>{dayName}</span>
           {/each}
+        </div>
+        <div class="month-grid">
+          {#each monthRows as week}
+            <div class="month-week-row">
+              <div class="month-week-days">
+                {#each week as day}
+                  {#if day}
+                    <button
+                      class={`month-cell ${intensityClass(day.minutes / 60)} ${day.isWeekend ? "weekend" : ""} ${day.isToday ? "active" : ""} ${selectedDay === day.day ? "selected" : ""}`}
+                      onclick={() => setSelectedDay(day.day)}
+                      aria-label={`Set tracked hours for ${day.weekdayShort} day ${day.day}`}
+                    >
+                      <strong
+                        >{day.day}
+                        <span class="day-week">{day.weekdayShort}</span></strong
+                      >
+                      {#if day.minutes > 0}
+                        <small>{formatMinutes(day.minutes)}</small>
+                      {/if}
+                    </button>
+                  {:else}
+                    <div class="month-empty" aria-hidden="true"></div>
+                  {/if}
+                {/each}
+              </div>
 
-          {@const weekEndDay = week[6]}
-          {@const weekExtraMinutes = weekEndDay
-            ? weekEndExtraMinutes[weekEndDay.day]
-            : undefined}
-          <div
-            class="month-week-summary"
-            aria-label="Weekly extra hours summary"
-          >
-            {#if weekExtraMinutes !== undefined}
-              <small
-                class={`week-extra ${weekExtraMinutes < 0 ? "negative" : ""}`}
-                >{formatSignedMinutes(weekExtraMinutes)}</small
-              >
-            {/if}
-          </div>
-        {/each}
+              {#if week}
+                {@const weekEndDay = week[6]}
+                {@const weekExtraMinutes = weekEndDay
+                  ? weekEndExtraMinutes[weekEndDay.day]
+                  : undefined}
+                <div
+                  class="month-week-summary"
+                  aria-label="Weekly extra hours summary"
+                >
+                  <span class="week-summary-label">Week +/-</span>
+                  {#if weekExtraMinutes !== undefined}
+                    <small
+                      class={`week-extra ${weekExtraMinutes < 0 ? "negative" : ""}`}
+                      >{formatSignedMinutes(weekExtraMinutes)}</small
+                    >
+                  {/if}
+                </div>
+              {/if}
+            </div>
+          {/each}
+        </div>
       </div>
 
       <div class="month-editor">

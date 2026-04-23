@@ -122,6 +122,14 @@
     return `${sign}${formatMinutes(Math.abs(rounded))}`;
   };
 
+  const formatWeekSummaryMinutes = (minutes: number) => {
+    const rounded = Math.round(minutes);
+    if (rounded === 0) {
+      return "+ 0 hours";
+    }
+    return formatSignedMinutes(rounded);
+  };
+
   const toViewedDate = (dayNumber: number) =>
     new Date(viewedYear, viewedMonth, dayNumber);
 
@@ -660,8 +668,8 @@
                 >
                   {#if weekExtraMinutes !== undefined}
                     <small
-                      class={`week-extra ${weekExtraMinutes < 0 ? "negative" : ""}`}
-                      >{formatSignedMinutes(weekExtraMinutes)}</small
+                      class={`week-extra ${weekExtraMinutes === 0 ? "zero" : "non-zero"}`}
+                      >{formatWeekSummaryMinutes(weekExtraMinutes)}</small
                     >
                   {/if}
                 </div>

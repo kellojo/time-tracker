@@ -498,15 +498,19 @@ button:focus-visible {
 .month-week-summary .week-extra {
   font-size: 0.74rem;
   font-weight: 700;
+  color: #b22a1d;
+}
+
+.month-week-summary .week-extra.non-zero {
+  color: #b22a1d;
+}
+
+[data-theme="dark"] .month-week-summary .week-extra.non-zero {
+  color: #ff8f81;
+}
+
+.month-week-summary .week-extra.zero {
   color: var(--accent);
-}
-
-.month-week-summary .week-extra.negative {
-  color: #ff8f81;
-}
-
-[data-theme="dark"] .month-week-summary .week-extra.negative {
-  color: #ff8f81;
 }
 
 .month-cell.active {

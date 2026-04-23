@@ -13,6 +13,7 @@
 
   const now = new Date();
   const weekdayHeaders = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const previewHeaders = [...weekdayHeaders, "Week +/-"];
   let viewedYear = $state(now.getFullYear());
   let viewedMonth = $state(now.getMonth());
 
@@ -72,11 +73,95 @@
     const safeMinutes = Math.max(0, Math.round(minutes));
     const hoursPart = Math.floor(safeMinutes / 60);
     const minutesPart = safeMinutes % 60;
+    if (hoursPart === 0) {
+      return `${minutesPart}m`;
+    }
     if (minutesPart === 0) {
       return `${hoursPart}h`;
     }
     return `${hoursPart}h ${minutesPart}m`;
   };
+
+  const formatSignedMinutes = (minutes: number) => {
+    const rounded = Math.round(minutes);
+    const sign = rounded < 0 ? "-" : "+";
+    return `${sign}${formatMinutes(Math.abs(rounded))}`;
+  };
+
+  const toViewedDate = (dayNumber: number) =>
+    new Date(viewedYear, viewedMonth, dayNumber);
+
+  const isWeekEndDay = (dayNumber: number) =>
+    toViewedDate(dayNumber).getDay() === 0;
+
+  const calculateWeekExtraMinutes = (weekEndDayNumber: number) => {
+    const weekEnd = toViewedDate(weekEndDayNumber);
+    const weekStart = new Date(weekEnd);
+    weekStart.setDate(weekEnd.getDate() - 6);
+
+    let totalExtraMinutes = 0;
+
+    for (const day of monthPreviewDays) {
+      const current = toViewedDate(day.day);
+
+      if (current < weekStart || current > weekEnd) {
+        continue;
+      }
+
+      const dayOfWeek = current.getDay();
+
+      if (dayOfWeek === 0 || dayOfWeek === 6) {
+        totalExtraMinutes += day.minutes;
+        continue;
+      }
+
+      if (day.minutes >= 1) {
+        totalExtraMinutes += day.minutes - dailyTargetMinutes;
+      }
+    }
+
+    return totalExtraMinutes;
+  };
+
+  const weekEndExtraMinutes = $derived(
+    (() => {
+      const summaries: Record<number, number> = {};
+
+      for (const day of monthPreviewDays) {
+        if (isWeekEndDay(day.day)) {
+          summaries[day.day] = calculateWeekExtraMinutes(day.day);
+        }
+      }
+
+      return summaries;
+    })(),
+  );
+
+  const monthRows = $derived(
+    (() => {
+      const leadingEmpty = Array.from(
+        { length: firstDayMondayIndex },
+        () => null,
+      );
+      const cells: Array<MonthPreviewDay | null> = [
+        ...leadingEmpty,
+        ...monthPreviewDays,
+      ];
+      const trailingEmpty = (7 - (cells.length % 7)) % 7;
+
+      for (let i = 0; i < trailingEmpty; i += 1) {
+        cells.push(null);
+      }
+
+      const rows: Array<Array<MonthPreviewDay | null>> = [];
+
+      for (let i = 0; i < cells.length; i += 7) {
+        rows.push(cells.slice(i, i + 7));
+      }
+
+      return rows;
+    })(),
+  );
 
   const selectedDayEntry = $derived(
     monthPreviewDays.find((entry) => entry.day === selectedDay),
@@ -499,28 +584,47 @@
         </div>
       </div>
       <div class="month-weekdays" aria-hidden="true">
-        {#each weekdayHeaders as dayName}
+        {#each previewHeaders as dayName}
           <span>{dayName}</span>
         {/each}
       </div>
       <div class="month-grid">
-        {#each Array.from({ length: firstDayMondayIndex }) as _, i}
-          <div class="month-empty" aria-hidden="true"></div>
-        {/each}
-        {#each monthPreviewDays as day}
-          <button
-            class={`month-cell ${intensityClass(day.minutes / 60)} ${day.isWeekend ? "weekend" : ""} ${day.isToday ? "active" : ""} ${selectedDay === day.day ? "selected" : ""}`}
-            onclick={() => setSelectedDay(day.day)}
-            aria-label={`Set tracked hours for ${day.weekdayShort} day ${day.day}`}
-          >
-            <strong
-              >{day.day}
-              <span class="day-week">{day.weekdayShort}</span></strong
-            >
-            {#if day.minutes > 0}
-              <small>{formatMinutes(day.minutes)}</small>
+        {#each monthRows as week}
+          {#each week as day}
+            {#if day}
+              <button
+                class={`month-cell ${intensityClass(day.minutes / 60)} ${day.isWeekend ? "weekend" : ""} ${day.isToday ? "active" : ""} ${selectedDay === day.day ? "selected" : ""}`}
+                onclick={() => setSelectedDay(day.day)}
+                aria-label={`Set tracked hours for ${day.weekdayShort} day ${day.day}`}
+              >
+                <strong
+                  >{day.day}
+                  <span class="day-week">{day.weekdayShort}</span></strong
+                >
+                {#if day.minutes > 0}
+                  <small>{formatMinutes(day.minutes)}</small>
+                {/if}
+              </button>
+            {:else}
+              <div class="month-empty" aria-hidden="true"></div>
             {/if}
-          </button>
+          {/each}
+
+          {@const weekEndDay = week[6]}
+          {@const weekExtraMinutes = weekEndDay
+            ? weekEndExtraMinutes[weekEndDay.day]
+            : undefined}
+          <div
+            class="month-week-summary"
+            aria-label="Weekly extra hours summary"
+          >
+            {#if weekExtraMinutes !== undefined}
+              <small
+                class={`week-extra ${weekExtraMinutes < 0 ? "negative" : ""}`}
+                >{formatSignedMinutes(weekExtraMinutes)}</small
+              >
+            {/if}
+          </div>
         {/each}
       </div>
 
@@ -601,7 +705,7 @@
   }
 
   .summary-overtime-fill {
-    background: linear-gradient(90deg, #f7a43a, #eb7f1a);
+    background: linear-gradient(90deg, #542f2a, #ff8f81);
     animation: summary-progress-shimmer 1.4s linear infinite;
     background-size: 160% 100%;
   }

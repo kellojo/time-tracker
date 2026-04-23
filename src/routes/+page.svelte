@@ -54,7 +54,13 @@
       };
     });
 
-  let monthPreviewDays = $state<MonthPreviewDay[]>([]);
+  let monthPreviewDays = $state<MonthPreviewDay[]>(
+    buildMonthPreviewDays(
+      now.getFullYear(),
+      now.getMonth(),
+      new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate(),
+    ),
+  );
 
   let selectedDay = $state(now.getDate());
   let editValue = $state("");
@@ -64,6 +70,7 @@
   let timerActionPending = $state(false);
   let apiMessage = $state("");
   let monthScrollEl: HTMLDivElement | null = null;
+  let monthScrollInitialized = false;
   let theme = $state<"light" | "dark">(
     browser && document.documentElement.getAttribute("data-theme") === "dark"
       ? "dark"
@@ -71,9 +78,13 @@
   );
 
   const scrollMonthToCurrentDay = async () => {
-    if (!monthScrollEl) return;
+    if (!monthScrollEl || monthScrollInitialized) return;
 
     await tick();
+
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => resolve());
+    });
 
     const currentDayCell =
       monthScrollEl.querySelector<HTMLButtonElement>(".month-cell.active");
@@ -88,10 +99,8 @@
       containerRect.width / 2 +
       dayRect.width / 2;
 
-    monthScrollEl.scrollTo({
-      left: Math.max(0, nextLeft),
-      behavior: "smooth",
-    });
+    monthScrollEl.scrollLeft = Math.max(0, nextLeft);
+    monthScrollInitialized = true;
   };
 
   const formatMinutes = (minutes: number) => {

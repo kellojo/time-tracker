@@ -1,6 +1,6 @@
 <script lang="ts">
   import { browser } from "$app/environment";
-  import { onMount } from "svelte";
+  import { onMount, tick } from "svelte";
   import TimerCard from "$lib/ui/TimerCard.svelte";
 
   type MonthPreviewDay = {
@@ -63,11 +63,36 @@
   let activeRunSeconds = $state(0);
   let timerActionPending = $state(false);
   let apiMessage = $state("");
+  let monthScrollEl: HTMLDivElement | null = null;
   let theme = $state<"light" | "dark">(
     browser && document.documentElement.getAttribute("data-theme") === "dark"
       ? "dark"
       : "light",
   );
+
+  const scrollMonthToCurrentDay = async () => {
+    if (!monthScrollEl) return;
+
+    await tick();
+
+    const currentDayCell =
+      monthScrollEl.querySelector<HTMLButtonElement>(".month-cell.active");
+
+    if (!currentDayCell) return;
+
+    const containerRect = monthScrollEl.getBoundingClientRect();
+    const dayRect = currentDayCell.getBoundingClientRect();
+    const nextLeft =
+      monthScrollEl.scrollLeft +
+      (dayRect.left - containerRect.left) -
+      containerRect.width / 2 +
+      dayRect.width / 2;
+
+    monthScrollEl.scrollTo({
+      left: Math.max(0, nextLeft),
+      behavior: "smooth",
+    });
+  };
 
   const formatMinutes = (minutes: number) => {
     const safeMinutes = Math.max(0, Math.round(minutes));
@@ -432,6 +457,7 @@
 
   onMount(() => {
     void refreshFromBackend();
+    void scrollMonthToCurrentDay();
 
     const handleVisibilityRefresh = () => {
       if (document.visibilityState !== "visible") return;
@@ -583,7 +609,7 @@
           </button>
         </div>
       </div>
-      <div class="month-scroll">
+      <div class="month-scroll" bind:this={monthScrollEl}>
         <div class="month-weekdays" aria-hidden="true">
           {#each previewHeaders as dayName}
             <span>{dayName}</span>
@@ -623,7 +649,6 @@
                   class="month-week-summary"
                   aria-label="Weekly extra hours summary"
                 >
-                  <span class="week-summary-label">Week +/-</span>
                   {#if weekExtraMinutes !== undefined}
                     <small
                       class={`week-extra ${weekExtraMinutes < 0 ? "negative" : ""}`}

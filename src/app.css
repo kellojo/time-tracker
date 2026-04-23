@@ -436,13 +436,6 @@ button:focus-visible {
   gap: 0.35rem;
 }
 
-.week-summary-label {
-  display: none;
-  font-size: 0.72rem;
-  color: var(--muted);
-  font-weight: 700;
-}
-
 .month-cell {
   border: 0;
   border-radius: 0.65rem;
@@ -602,10 +595,6 @@ button:focus-visible {
     min-height: 58px;
     flex-direction: column;
     justify-content: center;
-  }
-
-  .week-summary-label {
-    display: block;
   }
 
   .month-nav {

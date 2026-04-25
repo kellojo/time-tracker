@@ -727,7 +727,7 @@
                 >
                   {#if weekExtraMinutes !== undefined}
                     <small
-                      class={`week-extra ${weekExtraMinutes === 0 ? "zero" : "non-zero"}`}
+                      class={`week-extra ${weekExtraMinutes === 0 ? "zero" : weekExtraMinutes > 0 ? "positive" : "negative"}`}
                       >{formatWeekSummaryMinutes(weekExtraMinutes)}</small
                     >
                   {/if}

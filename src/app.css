@@ -505,12 +505,15 @@ button:focus-visible {
   color: #b22a1d;
 }
 
-.month-week-summary .week-extra.non-zero {
+.month-week-summary .week-extra.positive {
   color: #b22a1d;
 }
-
-[data-theme="dark"] .month-week-summary .week-extra.non-zero {
+[data-theme="dark"] .month-week-summary .week-extra.positive {
   color: #ff8f81;
+}
+
+.month-week-summary .week-extra.negative {
+  color: var(--accent);
 }
 
 .month-week-summary .week-extra.zero {

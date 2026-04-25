@@ -15,6 +15,9 @@
   --line: #d8dfd0;
   --accent: #136f5f;
   --accent-2: #d95f2b;
+  --accent-3: #3d86d7;
+  --danger-red: #b22a1d;
+  --danger-red-bg: #d66a5c;
   --shadow: 0 18px 50px rgba(16, 32, 26, 0.08);
 }
 
@@ -27,6 +30,9 @@
   --line: #314139;
   --accent: #2fa488;
   --accent-2: #f29a5a;
+  --accent-3: #3d86d7;
+  --danger-red: #ff8f81;
+  --danger-red-bg: #d66a5c;
   --shadow: 0 22px 52px rgba(0, 0, 0, 0.34);
 }
 
@@ -437,6 +443,7 @@ button:focus-visible {
 }
 
 .month-cell {
+  --overtime-red-mix: 0%;
   border: 0;
   border-radius: 0.65rem;
   min-height: 62px;
@@ -502,22 +509,19 @@ button:focus-visible {
 .month-week-summary .week-extra {
   font-size: 0.74rem;
   font-weight: 700;
-  color: #b22a1d;
+  color: var(--danger-red);
 }
 
 .month-week-summary .week-extra.positive {
-  color: #b22a1d;
-}
-[data-theme="dark"] .month-week-summary .week-extra.positive {
-  color: #ff8f81;
+  color: var(--danger-red);
 }
 
 .month-week-summary .week-extra.negative {
-  color: var(--accent);
+  color: var(--danger-red);
 }
 
 .month-week-summary .week-extra.zero {
-  color: var(--accent);
+  color: var(--muted);
 }
 
 .month-cell.active {
@@ -686,50 +690,90 @@ button:focus-visible {
 }
 
 .lvl-0 {
-  background: #e9efe7;
+  background: color-mix(
+    in srgb,
+    #e9efe7 calc(100% - var(--overtime-red-mix)),
+    var(--danger-red-bg) var(--overtime-red-mix)
+  );
   color: #536560;
 }
 
 .lvl-1 {
-  background: #bfdfd7;
+  background: color-mix(
+    in srgb,
+    #bfdfd7 calc(100% - var(--overtime-red-mix)),
+    var(--danger-red-bg) var(--overtime-red-mix)
+  );
   color: #103b33;
 }
 
 .lvl-2 {
-  background: #7ec8b6;
+  background: color-mix(
+    in srgb,
+    #7ec8b6 calc(100% - var(--overtime-red-mix)),
+    var(--danger-red-bg) var(--overtime-red-mix)
+  );
   color: #07261f;
 }
 
 .lvl-3 {
-  background: #2ea589;
+  background: color-mix(
+    in srgb,
+    #2ea589 calc(100% - var(--overtime-red-mix)),
+    var(--danger-red-bg) var(--overtime-red-mix)
+  );
 }
 
 .lvl-4 {
-  background: #136f5f;
+  background: color-mix(
+    in srgb,
+    #136f5f calc(100% - var(--overtime-red-mix)),
+    var(--danger-red-bg) var(--overtime-red-mix)
+  );
 }
 
 [data-theme="dark"] .month-cell.lvl-0 {
-  background: #26312c;
+  background: color-mix(
+    in srgb,
+    #26312c calc(100% - var(--overtime-red-mix)),
+    var(--danger-red-bg) var(--overtime-red-mix)
+  );
   color: #b8c6bf;
 }
 
 [data-theme="dark"] .month-cell.lvl-1 {
-  background: #2a4038;
+  background: color-mix(
+    in srgb,
+    #2a4038 calc(100% - var(--overtime-red-mix)),
+    var(--danger-red-bg) var(--overtime-red-mix)
+  );
   color: #d4e0db;
 }
 
 [data-theme="dark"] .month-cell.lvl-2 {
-  background: #255247;
+  background: color-mix(
+    in srgb,
+    #255247 calc(100% - var(--overtime-red-mix)),
+    var(--danger-red-bg) var(--overtime-red-mix)
+  );
   color: #e2f0ea;
 }
 
 [data-theme="dark"] .month-cell.lvl-3 {
-  background: #226255;
+  background: color-mix(
+    in srgb,
+    #226255 calc(100% - var(--overtime-red-mix)),
+    var(--danger-red-bg) var(--overtime-red-mix)
+  );
   color: #eef8f4;
 }
 
 [data-theme="dark"] .month-cell.lvl-4 {
-  background: #1e6e5f;
+  background: color-mix(
+    in srgb,
+    #1e6e5f calc(100% - var(--overtime-red-mix)),
+    var(--danger-red-bg) var(--overtime-red-mix)
+  );
   color: #f3fcf8;
 }
 

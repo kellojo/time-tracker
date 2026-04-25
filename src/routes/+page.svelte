@@ -523,6 +523,12 @@
     return "lvl-4";
   };
 
+  const monthCellOvertimeStyle = (minutes: number) => {
+    const overtimeMinutes = Math.max(0, minutes - dailyTargetMinutes);
+    const overtimeMix = Math.min(100, (overtimeMinutes / (2 * 60)) * 100);
+    return `--overtime-red-mix: ${overtimeMix.toFixed(1)}%;`;
+  };
+
   $effect(() => {
     monthPreviewDays = buildMonthPreviewDays(viewedYear, viewedMonth);
 
@@ -702,6 +708,7 @@
                 {#each week as day}
                   <button
                     class={`month-cell ${intensityClass(day.minutes / 60)} ${day.isWeekend ? "weekend" : ""} ${day.isToday ? "active" : ""} ${day.inCurrentMonth ? "" : "outside-month"} ${selectedDay === day.day && day.inCurrentMonth ? "selected" : ""}`}
+                    style={monthCellOvertimeStyle(day.minutes)}
                     onclick={() => selectCalendarCell(day)}
                     aria-label={`Set tracked hours for ${day.weekdayShort} day ${day.day}`}
                   >
@@ -816,7 +823,11 @@
   }
 
   .summary-overtime-fill {
-    background: linear-gradient(90deg, #542f2a, #ff8f81);
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--danger-red) 35%, black),
+      var(--danger-red)
+    );
     animation: summary-progress-shimmer 1.4s linear infinite;
     background-size: 160% 100%;
   }
